@@ -1,0 +1,28 @@
+{
+  "action": {
+    "default_icon": {
+      "128": "images/icon128.png",
+      "16": "images/icon16.png",
+      "48": "images/icon48.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "description": "A tool to manage and disable extensions on specific websites.",
+  "icons": {
+    "128": "images/icon128.png",
+    "16": "images/icon16.png",
+    "48": "images/icon48.png"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7pfuoLI9Fbm6Mc1K4qUa5L7I5AxuoBRrU4uo9fn2wA793cBKLZO3YsDaDy6hK0+Kuh1mNZWuoWTNZuo7jApHD3XQrFJAeF1T0ZIhD3SJjZfngH/rSaG4QXcpQt18ySdy9603jpOLI8gx9fqYwSRjcLWlL1ie/gDKjv5r+CZZ/c6E5qK/q0fsEjjp1fIk3mC0PfawbzSjmL8TpoB2wmhoDCdiElNKhfB/PtH8QWDUWIcYldnW6FTfZ96Cf2px8x2gOwHX5qwCg7A+Lb52EjyNw4iQOSjzLsJjnpLW4xXeedMI9GFgg1dW0jWIZS5Wml0LsnS0IZJRsF+Wyo77G/7zbwIDAQAB",
+  "manifest_version": 3,
+  "name": "Extension Disabler for Localhost and websites",
+  "permissions": [
+    "storage",
+    "tabs",
+    "management"
+  ],
+  "version": "1.1.2"
+}

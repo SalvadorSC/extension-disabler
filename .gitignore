@@ -1,0 +1,6 @@
+.DS_Store
+*.crx
+*.zip
+_metadata/
+.idea/
+.vscode/
