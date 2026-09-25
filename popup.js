@@ -7,50 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const noExtensionsMessage = document.getElementById("noExtensionsMessage");
   const noWebsitesMessage = document.getElementById("noWebsitesMessage");
-  const rateButton = document.getElementById("rateButton"); // New rate button
-  const isFirefoxBrowser = navigator.userAgent.includes("Firefox");
-  const toggleExtensionsButton = document.getElementById(
-    "toggleSelectedExtension"
-  );
-
-  if (isFirefoxBrowser) {
-    console.warn(
-      "Firefox detected: The `chrome.management` API is not available."
-    );
-  } else {
-    toggleExtensionsButton.style.display = "none";
-  }
-
-  // Toggle Extension Button Click
-  toggleExtensionsButton.addEventListener("click", async () => {
-    const selectedExtension = extensionList.querySelector(
-      "input[type='checkbox']:checked"
-    );
-    if (!selectedExtension) {
-      alert("Please select an extension to toggle.");
-      return;
-    }
-    const extensionId = selectedExtension.value;
-
-    try {
-      let extensionInfo = await chrome.management.get(extensionId);
-      let newState = !extensionInfo.enabled; // Toggle the current state
-
-      if (isFirefox) {
-        //alert("Firefox only allows enabling/disabling themes.");
-        console.log("Firefox only allows enabling/disabling themes.");
-        return;
-      }
-
-      await chrome.management.setEnabled(extensionId, newState);
-      //alert(`Extension is now ${newState ? "enabled" : "disabled"}`);
-      console.log(`Extension is now ${newState ? "enabled" : "disabled"}`);
-    } catch (error) {
-      console.error("Error toggling extension:", error);
-      //alert("Action restricted: Only themes can be toggled in Firefox.");
-      console.log("Action restricted: Only themes can be toggled in Firefox.");
-    }
-  });
+  const rateButton = document.getElementById("rateButton");
 
   chrome.management.getAll((extensions) => {
     chrome.storage.sync.get("blockedExtensions", (data) => {
@@ -134,8 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Rate button logic
   rateButton.addEventListener("click", () => {
-    const extensionId = "midacakbhnbiohpknjpnodiglekaedhm"; // Use the provided extension ID
-    const url = `https://chrome.google.com/webstore/detail/${extensionId}`;
+    const url =
+      "https://chromewebstore.google.com/detail/extension-disabler-for-lo/midacakbhnbiohpknjpnodiglekaedhm";
     window.open(url, "_blank");
   });
 
@@ -219,21 +176,11 @@ function addExtensionToList(extension, isBlocked) {
   label.htmlFor = extension.id;
 
   if (extension.icons && extension.icons.length > 0) {
-    let iconURL = extension.icons[extension.icons.length - 1].url;
-
-    if (iconURL.startsWith("moz-extension://")) {
-      console.warn(
-        `Firefox icon not accessible for ${extension.name}:`,
-        iconURL
-      );
-      // remove img
-    } else {
-      const img = document.createElement("img");
-      img.remove();
-      img.src = iconURL; // Use the standard icon if accessible
-      img.alt = extension.name;
-      label.appendChild(img);
-    }
+    const iconURL = extension.icons[extension.icons.length - 1].url;
+    const img = document.createElement("img");
+    img.src = iconURL;
+    img.alt = extension.name;
+    label.appendChild(img);
   }
 
   const span = document.createElement("span");

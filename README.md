@@ -16,6 +16,12 @@ Recovered from the Chrome Web Store install **v1.1.2** (Manifest V3) on 2026-09-
 2. Enable Developer mode
 3. **Load unpacked** → select this folder
 
+## Release / store ZIP
+
+The `key` field in `manifest.json` stays in this repo so an unpacked install keeps the same extension ID as the Chrome Web Store listing (`midacakbhnbiohpknjpnodiglekaedhm`). Never commit a `.pem` private key.
+
+When you pack the ZIP that gets uploaded to the Web Store, leave out `key` and any `_metadata` directory. The store already holds the extension’s key, and it rejects packages that include either of those.
+
 ## Permissions
 
 Uses `chrome.management` and `chrome.storage.sync` for site-based block lists.
