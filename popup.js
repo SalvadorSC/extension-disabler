@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const noExtensionsMessage = document.getElementById("noExtensionsMessage");
   const noWebsitesMessage = document.getElementById("noWebsitesMessage");
   const rateButton = document.getElementById("rateButton");
+  const exportSettingsButton = document.getElementById("exportSettings");
+  const importSettingsButton = document.getElementById("importSettings");
+  const importSettingsFile = document.getElementById("importSettingsFile");
+
 
   chrome.management.getAll((extensions) => {
     chrome.storage.sync.get("blockedExtensions", (data) => {
@@ -87,6 +91,35 @@ document.addEventListener("DOMContentLoaded", () => {
         location.reload();
       });
     }
+  });
+
+  exportSettingsButton.addEventListener("click", exportSettings);
+  importSettingsButton.addEventListener("click", () => {
+    importSettingsFile.click();
+  });
+  importSettingsFile.addEventListener("change", () => {
+    const file = importSettingsFile.files && importSettingsFile.files[0];
+    importSettingsFile.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result).replace(/^\uFEFF/, "");
+        const settings = validateImportedSettings(JSON.parse(text));
+        writeImportedSettings(settings);
+      } catch (error) {
+        const message =
+          error instanceof SyntaxError
+            ? "Settings file is not valid JSON."
+            : error.message;
+        alert(message || "Could not import settings.");
+      }
+    };
+    reader.onerror = () => {
+      alert("Could not read that file.");
+    };
+    reader.readAsText(file);
   });
 
   // Rate button logic
@@ -283,6 +316,104 @@ function saveSettings() {
   chrome.storage.sync.set({
     blockedExtensions: selectedExtensions,
     blockedWebsites: websites,
+  });
+}
+
+function exportSettings() {
+  chrome.storage.sync.get(
+    ["blockedExtensions", "blockedWebsites", "theme"],
+    (data) => {
+      const payload = {
+        blockedExtensions: data.blockedExtensions || [],
+        blockedWebsites: data.blockedWebsites || [],
+        theme: data.theme === "dark" ? "dark" : "default",
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "extension-disabler-settings.json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+  );
+}
+
+// Expected file shape: { blockedExtensions: string[], blockedWebsites: string[], theme?: "dark" | "default" }
+function validateImportedSettings(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Settings file must be a JSON object.");
+  }
+
+  const blockedExtensions = stringList(
+    value.blockedExtensions,
+    "blockedExtensions"
+  );
+  const blockedWebsites = stringList(value.blockedWebsites, "blockedWebsites");
+
+  if (
+    value.theme !== undefined &&
+    value.theme !== "dark" &&
+    value.theme !== "default"
+  ) {
+    throw new Error('theme must be "dark" or "default".');
+  }
+
+  assertSyncItemSize("blockedExtensions", blockedExtensions);
+  assertSyncItemSize("blockedWebsites", blockedWebsites);
+
+  const settings = { blockedExtensions, blockedWebsites };
+  if (value.theme === "dark" || value.theme === "default") {
+    settings.theme = value.theme;
+  }
+  return settings;
+}
+
+function stringList(value, label) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array of strings.`);
+  }
+  return value.map((item, index) => {
+    if (typeof item !== "string" || !item.trim()) {
+      throw new Error(`${label}[${index}] must be a non-empty string.`);
+    }
+    return item.trim();
+  });
+}
+
+function assertSyncItemSize(label, value) {
+  const bytes = new TextEncoder().encode(JSON.stringify(value)).length;
+  if (bytes > chrome.storage.sync.QUOTA_BYTES_PER_ITEM) {
+    throw new Error(`${label} is too large to store.`);
+  }
+}
+
+function writeImportedSettings(settings) {
+  const payload = {
+    blockedExtensions: settings.blockedExtensions,
+    blockedWebsites: settings.blockedWebsites,
+  };
+  if (settings.theme) payload.theme = settings.theme;
+
+  chrome.storage.sync.set(payload, () => {
+    if (chrome.runtime.lastError) {
+      alert("Could not save settings: " + chrome.runtime.lastError.message);
+      return;
+    }
+    chrome.runtime.sendMessage(
+      {
+        action: "updateSettings",
+        extensions: settings.blockedExtensions,
+        websites: settings.blockedWebsites,
+      },
+      () => {
+        location.reload();
+      }
+    );
   });
 }
 

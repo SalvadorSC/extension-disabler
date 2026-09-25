@@ -296,3 +296,14 @@ a:hover {
   margin: 0 auto;
   margin-bottom: 8px;
 }
+
+.settings-transfer {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.settings-transfer button {
+  flex: 1;
+  background-color: var(--function-button-background-color);
+}
